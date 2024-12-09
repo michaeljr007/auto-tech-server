@@ -3,6 +3,8 @@ require("express-async-errors");
 
 const express = require("express");
 const app = express();
+const connectDB = require("./db/connect");
+
 const helmet = require("helmet");
 const cors = require("cors");
 const xss = require("xss-clean");
@@ -35,7 +37,14 @@ app.use("/api/v1/messages", messageRouter);
 const port = process.env.PORT || 5000;
 
 const start = async () => {
-  app.listen(port, () => console.log(`Listening at port: ${port}`));
+  try {
+    await connectDB(process.env.MONGO_URI);
+    console.log("Connected to DB");
+
+    app.listen(port, () => console.log(`Listening at port: ${port}`));
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 start();
