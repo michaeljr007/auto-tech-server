@@ -3,6 +3,10 @@ const { StatusCodes } = require("http-status-codes");
 
 const createMessage = async (req, res) => {
   const message = await Message.create(req.body);
+
+  // Emit the new message to all connected clients
+  req.io.emit("receiveMessage", message);
+
   res.status(StatusCodes.CREATED).json({ msg: "Message created", message });
 };
 
@@ -27,6 +31,10 @@ const updateMessage = async (req, res) => {
   if (!message) {
     return res.status(StatusCodes.NOT_FOUND).json({ msg: "Message not found" });
   }
+
+  // Emit the updated message to all connected clients
+  req.io.emit("receiveMessage", message);
+
   res.status(StatusCodes.OK).json({ msg: "Message updated", message });
 };
 

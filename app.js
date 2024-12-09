@@ -9,6 +9,17 @@ const helmet = require("helmet");
 const cors = require("cors");
 const xss = require("xss-clean");
 const rateLimiter = require("express-rate-limit");
+const http = require("http");
+const { Server } = require("socket.io");
+
+// Create HTTP server and initialize socket.io
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 // Middleware
 app.use(express.json());
@@ -31,6 +42,12 @@ app.get("/", (req, res) => {
 // Routers
 const messageRouter = require("./routes/Messages");
 
+// Pass the io instance to the message router
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
 // Routes
 app.use("/api/v1/messages", messageRouter);
 
@@ -41,10 +58,27 @@ const start = async () => {
     await connectDB(process.env.MONGO_URI);
     console.log("Connected to DB");
 
-    app.listen(port, () => console.log(`Listening at port: ${port}`));
+    server.listen(port, () => console.log(`Listening at port: ${port}`));
   } catch (error) {
     console.log(error);
   }
 };
 
 start();
+
+// Socket.io connection handler
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  socket.on("sendMessage", (message) => {
+    io.emit("receiveMessage", message); // Broadcast message to all connected clients
+  });
+
+  socket.on("typing", ({ senderId, receiverId }) => {
+    socket.broadcast.emit("typing", { senderId, receiverId }); // Broadcast typing event to all other connected clients
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
