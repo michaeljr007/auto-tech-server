@@ -22,7 +22,7 @@ const messageSchema = new mongoose.Schema(
     },
     senderName: {
       type: String,
-      required: [true, "receiver name required"],
+      required: [true, "sender name required"],
       maxlength: [70, "Name too long"],
     },
   },
