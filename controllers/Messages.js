@@ -47,21 +47,29 @@ const deleteMessage = async (req, res) => {
 };
 
 const getMessageHistory = async (req, res) => {
-  const { user1, user2 } = req.params;
+  const { user1, user2 } = req.query; // Use req.query instead of req.params
 
-  const splitUser1 = user1.split("=")[1];
-  const splitUser2 = user2.split("=")[1];
+  try {
+    const messages = await Message.find({
+      $or: [
+        { sender: user1, receiver: user2 },
+        { sender: user2, receiver: user1 },
+      ],
+    }).sort({ createdAt: 1 }); // Sort messages by creation time in ascending order
 
-  const messages = await Message.find({
-    $or: [
-      { sender: splitUser1, receiver: splitUser2 },
-      { sender: splitUser2, receiver: splitUser1 },
-    ],
-  }).sort({ createdAt: 1 }); // Sort messages by creation time in ascending order
+    const documentId = messages.length > 0 ? messages[0].documentId : null; // Assuming you have a documentId in your messages
 
-  res
-    .status(StatusCodes.OK)
-    .json({ msg: "Message history retrieved", messages });
+    res.status(StatusCodes.OK).json({
+      msg: "Message history retrieved",
+      messages,
+      documentId,
+    });
+  } catch (error) {
+    console.error("Error retrieving message history:", error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: "Error retrieving message history" });
+  }
 };
 
 module.exports = {
