@@ -15,6 +15,16 @@ const messageSchema = new mongoose.Schema(
       required: [true, "receiver ID required"],
       maxlength: [70, "Name too long"],
     },
+    receiverName: {
+      type: String,
+      required: [true, "receiver name required"],
+      maxlength: [70, "Name too long"],
+    },
+    senderName: {
+      type: String,
+      required: [true, "receiver name required"],
+      maxlength: [70, "Name too long"],
+    },
   },
   { timestamps: true }
 );
