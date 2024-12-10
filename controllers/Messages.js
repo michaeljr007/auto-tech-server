@@ -49,10 +49,13 @@ const deleteMessage = async (req, res) => {
 const getMessageHistory = async (req, res) => {
   const { user1, user2 } = req.params;
 
+  const splitUser1 = user1.split("=")[1];
+  const splitUser2 = user2.split("=")[1];
+
   const messages = await Message.find({
     $or: [
-      { sender: user1, receiver: user2 },
-      { sender: user2, receiver: user1 },
+      { sender: splitUser1, receiver: splitUser2 },
+      { sender: splitUser2, receiver: splitUser1 },
     ],
   }).sort({ createdAt: 1 }); // Sort messages by creation time in ascending order
 
